@@ -1,0 +1,84 @@
+openapi: 3.0.3
+info:
+  title: LWS Sandbox Microservice
+  description: LWS Sandbox(Ubuntu etc) Microservice definition
+  version: 1.0.0
+
+servers:
+  - url: 'http://localhost:5282'
+    description: Local Server
+
+tags:
+  - name: Ubuntu
+    description: Ubuntu Related HTTP API(i.e creating, removing, updating etc)
+
+paths:
+  /api/ubuntu:
+    post:
+      tags:
+        - Ubuntu
+      security:
+        - lwsAuthorization: []
+      summary: Create Ubuntu Docker Service
+      requestBody: 
+        description: Request Body for creating ubuntu docker service
+        content: 
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/CreateUbuntuServiceRequest'
+            examples: 
+              CreateUbuntuExample:
+                summary: Creating Ubuntu Service
+                value:
+                  deploymentName: kangdroid
+                  sshOverridePort: 22
+      responses: 
+        200:
+          description: When creating ubuntu service succeed.
+          content: 
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/UbuntuDockerService'
+              examples: 
+                CreatedUbuntuExample:
+                  summary: When creating ubuntu succeed.
+                  value:
+                    accountId: some-random-string
+                    deploymentName: lowercase-deployment
+                    sshPort: 22
+                    createdAt: ISO8601 DateTimeOffset
+
+components: 
+  schemas: 
+    UbuntuDockerService:
+      description: Ubuntu Docker Service Entity
+      type: object
+      properties: 
+        accountId:
+          type: string
+          description: Account ID for corresponding user.
+        deploymentName:
+          type: string
+          description: The Ubuntu Deployment Name
+        sshPort:
+          type: integer
+          description: Ubuntu SSH Port(Default to 22)
+        createdAt:
+          type: string
+          description: Denotes when this sandbox createdAt
+          
+    CreateUbuntuServiceRequest:
+      description: Used when creating ubuntu docker service.
+      type: object
+      properties: 
+        deploymentName:
+          type: string
+          description: Deployment Name - should be unique within same namespace.
+        sshOverridePort:
+          type: integer
+          description: SSH Overrideable port.
+  securitySchemes:
+    lwsAuthorization:
+      type: apiKey
+      name: X-LWS-AUTH
+      in: header
