@@ -38,19 +38,7 @@ public class UbuntuController : ControllerBase
             });
         }
 
-        try
-        {
-            var response = await _ubuntuContainerService.CreateUbuntuDeploymentAsync(createRequest, accountId);
-            return Ok(response);
-        }
-        catch (HttpOperationException exception)
-        {
-            _logger.LogCritical("Error Occurred while sending request: {message}", exception.Message);
-            _logger.LogCritical("Stack: {message}", exception.Source);
-            _logger.LogCritical("Response: {message}", exception.Response.ReasonPhrase);
-            _logger.LogCritical("Response Content: {message}", exception.Response.Content);
-        }
-
-        return BadRequest();
+        var response = await _ubuntuContainerService.CreateUbuntuDeploymentAsync(createRequest, accountId);
+        return Ok(response);
     }
 }
