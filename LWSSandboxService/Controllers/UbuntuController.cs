@@ -1,6 +1,8 @@
+using System.Net;
 using LWSSandboxService.Attribute;
 using LWSSandboxService.Model;
 using LWSSandboxService.Model.Request;
+using LWSSandboxService.Model.Response;
 using LWSSandboxService.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Rest;
@@ -25,6 +27,16 @@ public class UbuntuController : ControllerBase
     public async Task<IActionResult> CreateUbuntuServiceAsync(CreateUbuntuServiceRequest createRequest)
     {
         var accountId = HttpContext.Items["accountId"].ToString();
+
+        if (createRequest.SshOverridePort <= 30000 || createRequest.SshOverridePort >= 32767)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Port should be in range between 30000 ~ 32767!",
+                ErrorPath = HttpContext.Request.Path,
+                StatusCodes = StatusCodes.Status400BadRequest
+            });
+        }
 
         try
         {

@@ -59,7 +59,7 @@ public class UbuntuContainerService
         };
     }
 
-    private V1Service UbuntuService(V1Deployment deployment) => new()
+    private V1Service UbuntuService(CreateUbuntuServiceRequest request, V1Deployment deployment) => new()
     {
         ApiVersion = "v1",
         Kind = "Service",
@@ -76,7 +76,7 @@ public class UbuntuContainerService
                 {
                     TargetPort = 22,
                     Port = 22,
-                    NodePort = 30020
+                    NodePort = request.SshOverridePort
                 }
             },
             Selector = deployment.Spec.Template.Metadata.Labels
@@ -86,7 +86,7 @@ public class UbuntuContainerService
     public async Task<UbuntuDeployment> CreateUbuntuDeploymentAsync(CreateUbuntuServiceRequest request, string userId)
     {
         var deploymentDefinition = UbuntuDeployment(request.DeploymentName);
-        var serviceDefinition = UbuntuService(deploymentDefinition);
+        var serviceDefinition = UbuntuService(request, deploymentDefinition);
 
         // Do
         await _kubernetesRepository.CreateDeploymentAsync(deploymentDefinition, userId.ToLower());
@@ -97,7 +97,7 @@ public class UbuntuContainerService
             AccountId = userId,
             CreatedAt = DateTimeOffset.UtcNow,
             DeploymentName = request.DeploymentName,
-            SshPort = 22
+            SshPort = request.SshOverridePort
         };
     }
 }
