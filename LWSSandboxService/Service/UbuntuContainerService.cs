@@ -1,17 +1,21 @@
+using System.Security.AccessControl;
 using k8s.Models;
 using LWSSandboxService.Model;
 using LWSSandboxService.Model.Request;
 using LWSSandboxService.Repository;
+using Newtonsoft.Json;
 
 namespace LWSSandboxService.Service;
 
 public class UbuntuContainerService
 {
     private readonly KubernetesRepository _kubernetesRepository;
+    private readonly IEventRepository _eventRepository;
 
-    public UbuntuContainerService(KubernetesRepository kubernetesRepository)
+    public UbuntuContainerService(KubernetesRepository kubernetesRepository, IEventRepository eventRepository)
     {
         _kubernetesRepository = kubernetesRepository;
+        _eventRepository = eventRepository;
     }
 
     public V1Container UbuntuContainerDefinition => new()
@@ -92,12 +96,26 @@ public class UbuntuContainerService
         await _kubernetesRepository.CreateDeploymentAsync(deploymentDefinition, userId.ToLower());
         await _kubernetesRepository.CreateServiceAsync(serviceDefinition, userId.ToLower());
 
-        return new UbuntuDeployment
+        // Send Event
+        var deployment = new UbuntuDeployment
         {
+            Id = Ulid.NewUlid().ToString(),
+            DeploymentType = DeploymentType.UbuntuDeployment,
             AccountId = userId,
             CreatedAt = DateTimeOffset.UtcNow,
             DeploymentName = request.DeploymentName,
             SshPort = request.SshOverridePort
         };
+        var eventMessage = new DeploymentCreatedMessage
+        {
+            DeploymentType = DeploymentType.UbuntuDeployment,
+            AccountId = deployment.AccountId,
+            CreatedAt = deployment.CreatedAt,
+            DeploymentObject =
+                JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(deployment))
+        };
+        await _eventRepository.SendMessageToTopicAsync("deployment.created", eventMessage);
+
+        return deployment;
     }
 }
