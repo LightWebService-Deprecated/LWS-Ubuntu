@@ -65,7 +65,7 @@ public class UbuntuContainerService
         Kind = "Service",
         Metadata = new V1ObjectMeta
         {
-            Name = Ulid.NewUlid().ToString().ToLower()
+            Name = $"ubuntu-{Ulid.NewUlid().ToString().ToLower()}"
         },
         Spec = new V1ServiceSpec
         {
@@ -74,14 +74,12 @@ public class UbuntuContainerService
             {
                 new()
                 {
-                    Port = 30020,
-                    NodePort = 22
+                    TargetPort = 22,
+                    Port = 22,
+                    NodePort = 30020
                 }
             },
-            Selector = new Dictionary<string, string>
-            {
-                ["name"] = deployment.Metadata.Name
-            }
+            Selector = deployment.Spec.Template.Metadata.Labels
         }
     };
 
@@ -91,8 +89,8 @@ public class UbuntuContainerService
         var serviceDefinition = UbuntuService(deploymentDefinition);
 
         // Do
-        await _kubernetesRepository.CreateDeploymentAsync(deploymentDefinition, userId);
-        await _kubernetesRepository.CreateServiceAsync(serviceDefinition, userId);
+        await _kubernetesRepository.CreateDeploymentAsync(deploymentDefinition, userId.ToLower());
+        await _kubernetesRepository.CreateServiceAsync(serviceDefinition, userId.ToLower());
 
         return new UbuntuDeployment
         {
