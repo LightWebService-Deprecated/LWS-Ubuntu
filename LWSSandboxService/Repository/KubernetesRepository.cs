@@ -22,4 +22,11 @@ public class KubernetesRepository
     {
         await _kubernetesClient.CreateNamespacedServiceAsync(serviceDefinition, @namespace);
     }
+
+    public async Task<bool> CheckDeploymentExists(string @namespace, string deploymentName)
+    {
+        var deployment = await _kubernetesClient.ListNamespacedDeploymentAsync(@namespace);
+
+        return deployment?.Items.Any(a => a.Metadata.Name == deploymentName) == true;
+    }
 }

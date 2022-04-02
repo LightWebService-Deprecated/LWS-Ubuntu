@@ -38,6 +38,16 @@ public class UbuntuController : ControllerBase
             });
         }
 
+        if (await _ubuntuContainerService.CheckDeploymentExists(accountId, createRequest.DeploymentName))
+        {
+            return BadRequest(new ErrorResponse
+            {
+                Message = $"Deployment Name {createRequest.DeploymentName} Already Exists",
+                ErrorPath = HttpContext.Request.Path,
+                StatusCodes = StatusCodes.Status400BadRequest
+            });
+        }
+
         var response = await _ubuntuContainerService.CreateUbuntuDeploymentAsync(createRequest, accountId);
         return Ok(response);
     }

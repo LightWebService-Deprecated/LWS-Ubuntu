@@ -100,4 +100,9 @@ public class UbuntuContainerService
             SshPort = request.SshOverridePort
         };
     }
+
+    public async Task<bool> CheckDeploymentExists(string accountId, string deploymentName)
+    {
+        return await _kubernetesRepository.CheckDeploymentExists(accountId, deploymentName);
+    }
 }
